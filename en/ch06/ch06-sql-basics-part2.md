@@ -6,28 +6,21 @@ In the "SQL syntax (I)" section, we covered the fundamentals of SQL,including SQ
 
 In the context of blockchain, data is recorded and stored in the order of transaction occurrences. When conducting daily data analysis, it is often necessary to perform statistical operations on data within specific time periods. In the previous section, we introduced the `date_trunc()` function, which allows us to truncate date values at specified intervals such as days, weeks, or hours. Furthermore, there are several commonly used functions and their respective usage.
 
-### 1.Now() and Current_Date() functions
+### 1.Now() and current_date functions
 
 The `now()` function is used to get the date and time of the current system.Note that it is internally stored with hour, minute and second values, but Dune's query editor only displays "hour:minute" by default.When we want to correlate the date field with the `minute` field in the `prices.usd` table, we must first intercept by minute.Otherwise,the correct price record may not be associated.
 
-The  `current_date()` function is used to get the current date (without the hours, minutes and seconds part).When filtering data by date and time, we often need to combine these functions and use relevant date functions to obtain the exact date or time. The `current_date()` function is equivalent to using `date_trunc('day', now())`, which extracts the day value from the result of `now()`. You can also omit the parentheses of `current_date()` and write it as `current_date` directly.
+Use `current_date` without parentheses to obtain a date. `date_trunc('day', now())` returns a timestamp truncated to the start of the day.
 
 ``` sql
 select now() -- current datetime
-    ,current_date() -- current date
     ,current_date   -- current date
-    ,date_trunc('day', now()) -- same as current_date
+    ,date_trunc('day', now()) -- timestamp truncated to day
 ```
     
-### 2.DateAdd(), Date_Add(), Date_Sub() and DateDiff() functions
+### 2. `date_add` and `date_diff`
 
-The `dateadd(unit, value, expr)` function  adds a datetime unit to a date expression. Here the "date and time units" using constants, commonly used are HOUR, DAY, WEEK, MONTH and so on.The value can be a negative number, which means that the corresponding date and time unit is subtracted from the following expression.It is also because a negative number can be used to indicate the subtraction of a datetime interval that the `datesub()` function is not needed and indeed not available.
-
-The `date_add(startDate, numDays)` function adds or subtracts the specified number of days to a date expression and returns another date.Parameter numDays for a positive number of days after the specified date to return to the `startDate`, for a negative number of days before the specified date to return.The function `date_sub (startDate, numDays)`is similar, but the meaning of the opposite, a negative number indicates the date after the return, and a positive number indicates the previous date.
-
-The function `datediff(endDate, startDate)` returns the number of days between two date expressions.If `endDate` is after `startDate`, it returns a positive value, before it returns a negative value.
-
-The SQL example is as follows:
+Use `date_add(unit, value, timestamp)` to add an interval. A negative value subtracts it. `date_diff(unit, start, end)` returns the difference from `start` to `end` in the specified unit.
 
 ``` sql
 select date_add('MONTH', 2, current_date) -- Add 2 months to current date
@@ -35,8 +28,8 @@ select date_add('MONTH', 2, current_date) -- Add 2 months to current date
     ,date_add('DAY', -2, current_date) -- Subtract 2 days to current date 
     ,date_add('DAY', 2, current_date) -- Add 2 days to current date
     ,date_add('DAY', -5, current_date) -- Subtract 5 days to current date 
-    ,date_diff('DAY', date('2022-11-22'), date('2022-11-25')) -- the difference between two date, return negtivate value
-    ,date_diff('DAY', date('2022-11-25'), date('2022-11-22'))  -- the difference between two date, return positive value
+    ,date_diff('DAY', date('2022-11-22'), date('2022-11-25')) -- 3
+    ,date_diff('DAY', date('2022-11-25'), date('2022-11-22')) -- -3
 ```
 
 ### 3.INTERVAL type
@@ -158,7 +151,7 @@ The combination of multiple rows of data becomes a window (Window). A function t
 function OVER window_spec
 ```
 
-Among them, `function` can be a ranking window function, an analysis window function or an aggregation function. `Over` is a fixed keyword that must be used. There are two possible changes in the `window_spec` part: partition by `partition_feild order by order_field` or `order by order_field`, respectively indicating partition first and then sort and direct sort without partition. Except for the case where all rows are treated as the same group, the grouping function must be used with `order by`.
+The `OVER` clause may specify a partition, an ordering, or both. A window aggregate can omit the order: `sum(amount) OVER (PARTITION BY account)` returns the full account total on each row. `lead` and `lag` require an order.
 
 1. LEAD(), LAG() functions
 

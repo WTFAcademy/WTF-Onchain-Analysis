@@ -21,22 +21,22 @@ This is a series tutorials for blockchain analysis enthusiasts, helping new user
 | #7           | [practice build lens dashboard part1](en/ch07/ch07-practice-build-lens-dashboard-part1.md) | [实践案例：制作Lens的数据看板（一）](zh/ch08/readme.md) |
 | #8           | [practice build lens dashboard part2](en/ch08/ch08-practice-build-lens-dashboard-part2.md) | [实践案例：制作Lens的数据看板（二）](zh/ch09/readme.md) |
 | **Intermediate** | ----                                                                                     | ----                                                                       |
-| #9           | [useful queries part1](en/ch09/ch09-useful-queries-part1.md)                               | [常见查询一：ERC20代币价格](zh/ch09/ch09-useful-queries-part1.md)                    |
-| #10          | [useful queries part2](en/ch10/ch10-useful-queries-part2.md)                               | [常见查询二：代币的持有者、总供应量、账户余额](zh/ch10/ch10-useful-queries-part2.md)             |
-| #11          | [useful queries part3](en/ch11/ch11-useful-queries-part3.md)                               | [常见查询三：自定义数据、数字序列、数组、JSON等](zh/ch11/ch11-useful-queries-part3.md)          |
-| #12          | [nft analysis](en/ch12/ch12-nft-analysis.md)                                               | [NFT数据分析](zh/ch12/ch12-nft-analysis.md)                                    |
-| #13          | [lending analysis](en/ch13/ch13-lending-analysis.md)                                       | [借贷协议数据分析](zh/ch13/ch13-lending-analysis.md)                               |
-| #14          | [defi analysis](en/ch14/ch14-defi-analysis.md)                                             | [DeFi数据分析](zh/ch14/ch14-defi-analysis.md)                                  |
-| #15          | [dunesql introduction](en/ch15/ch15-dunesql-introduction.md)                               | [Dune SQL 查询引擎入门](zh/ch15/ch15-dunesql-introduction.md)                    |
-| #16          | [blockchain analysis polygon](en/ch16/ch16-blockchain-analysis-polygon.md)                 | [Polygon区块链概况分析](zh/ch16/ch16-blockchain-analysis-polygon.md)              |
-| #17          | [mev analysis uniswap](en/ch17/ch17-mev-analysis-uniswap.md)                               | [MEV数据分析——以Uniswap为例](zh/ch17/ch17-mev-analysis-uniswap.md)                |
-| #18          | [uniswap multichain analysis](en/ch18/ch18-uniswap-multichain-analysis.md)                 | [Uniswap多链数据对比分析](zh/ch18/ch18-uniswap-multichain-analysis.md)             |
-| #19          | [useful metrics](en/ch19/ch19-useful-metrics.md)                                           | [各类常见指标分析](zh/ch19/ch19-useful-metrics.md)                                 |
+| #9           | [useful queries part1](en/ch09/ch09-useful-queries-part1.md)                               | [常见查询一：ERC20代币价格](zh/ch10/ch09-useful-queries-part1.md)                    |
+| #10          | [useful queries part2](en/ch10/ch10-useful-queries-part2.md)                               | [常见查询二：代币的持有者、总供应量、账户余额](zh/ch11/ch10-useful-queries-part2.md)             |
+| #11          | [useful queries part3](en/ch11/ch11-useful-queries-part3.md)                               | [常见查询三：自定义数据、数字序列、数组、JSON等](zh/ch12/ch11-useful-queries-part3.md)          |
+| #12          | [nft analysis](en/ch12/ch12-nft-analysis.md)                                               | [NFT数据分析](zh/ch13/ch12-nft-analysis.md)                                    |
+| #13          | [lending analysis](en/ch13/ch13-lending-analysis.md)                                       | [借贷协议数据分析](zh/ch14/ch13-lending-analysis.md)                               |
+| #14          | [defi analysis](en/ch14/ch14-defi-analysis.md)                                             | [DeFi数据分析](zh/ch15/ch14-defi-analysis.md)                                  |
+| #15          | [dunesql introduction](en/ch15/ch15-dunesql-introduction.md)                               | [Dune SQL 查询引擎入门](zh/ch16/ch15-dunesql-introduction.md)                    |
+| #16          | [blockchain analysis polygon](en/ch16/ch16-blockchain-analysis-polygon.md)                 | [Polygon区块链概况分析](zh/ch17/ch16-blockchain-analysis-polygon.md)              |
+| #17          | [mev analysis uniswap](en/ch17/ch17-mev-analysis-uniswap.md)                               | [MEV数据分析——以Uniswap为例](zh/ch18/ch17-mev-analysis-uniswap.md)                |
+| #18          | [uniswap multichain analysis](en/ch18/ch18-uniswap-multichain-analysis.md)                 | [Uniswap多链数据对比分析](zh/ch19/ch18-uniswap-multichain-analysis.md)             |
+| #19          | [useful metrics](en/ch19/ch19-useful-metrics.md)                                           | [各类常见指标分析](zh/ch20/ch19-useful-metrics.md)                                 |
 | **Advanced**     |  ---                                                                                       |  ---                                                                       |
-| #20          | [network analysis](en/ch20/ch20-network-analysis.md)                                       | [区块链网络分析](zh/ch20/ch20-network-analysis.md)                                |
-| #21          | [btc analysis](en/ch21/ch21-btc-analysis.md)                                               | [BTC数据分析-以指标CDD为例](zh/ch21/ch21-btc-analysis.md)                           |
-| #22          | [how to build spellbook](en/ch22/ch22-how-to-build-spellbook.md)                           | [如何构建魔法表（Spellbook）](zh/ch22/ch22-how-to-build-spellbook.md)               |
-| #23          | [how to build app use dune api](en/ch23/ch23-how-to-build-app-use-dune-api.md)             | [使用Dune API创建应用程序](zh/ch23/ch23-how-to-build-app-use-dune-api.md)          |
+| #20          | [network analysis](en/ch20/ch20-network-analysis.md)                                       | [区块链网络分析](zh/ch21/ch20-network-analysis.md)                                |
+| #21          | [btc analysis](en/ch21/ch21-btc-analysis.md)                                               | [BTC数据分析-以指标CDD为例](zh/ch22/ch21-btc-analysis.md)                           |
+| #22          | [how to build spellbook](en/ch22/ch22-how-to-build-spellbook.md)                           | [如何构建魔法表（Spellbook）](zh/ch23/ch22-how-to-build-spellbook.md)               |
+| #23          | [how to build app use dune api](en/ch23/ch23-how-to-build-app-use-dune-api.md)             | [使用Dune API创建应用程序](zh/ch24/ch23-how-to-build-app-use-dune-api.md)          |
 
 
 
