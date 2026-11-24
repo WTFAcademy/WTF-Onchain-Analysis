@@ -28,7 +28,7 @@ https://api.dune.com/api/v1/query/2408388/results?api_key=<api_key>
 
 Query的执行结果默认是缓存保存的，如果不再次主动执行这个Query，那么上面的API端点获取的将是已保存的上次执行结果集。通常我们的应用程序需要主动执行查询以获取最新满足条件的数据而不是重复获取缓存的结果集，对于监控类型的应用更是如此。所以我们还需要访问执行查询（Execute）的端点和获取查询执行状态（Status）的端点，在接收到已执行完成的状态信息后，访问获取结果集（Results）的端点获取数据。
 
-一个完整的API调用流程包括：执行查询、检查查询执行状态、获取查询结果集。Dune API的相关文档已经有详细的说明，所以这里就不再展开描述。大家可以直接看API文档：[Dune API](https://dune.com/docs/api/api-reference/#latest-results-endpoint)。
+一个完整的API调用流程包括：执行查询、检查查询执行状态、获取查询结果集。Dune API的相关文档已经有详细的说明，所以这里就不再展开描述。大家可以直接看API文档：[Dune API](https://docs.dune.com/api-reference/overview/introductionapi-reference/#latest-results-endpoint)。
 
 
 ## 项目需求说明
@@ -59,83 +59,80 @@ API调用参数: blockchain, pool, current hour (Unix timestamp)
 如果API有返回数据，则加入站内提醒中。导航条红色数字badge提醒未读提醒个数，点击可以显示列表。点击单条信息后改成已读状态。
 
 
-## 开发环境配置
+## 开发环境
 
-```
-yarn dev
-```
+使用 Node.js 22.12 或更新版本。下面创建一个使用 App Router 和 Tailwind 的
+Next.js 16 项目，再安装 Prisma 7 的 SQLite 适配器及监控页使用的库。
 
-其他命令可以参考项目源代码中的 readme.md 文件说明。
-
-## 开发概览
-
-### 创建项目
-
-基于 Next.js, CSS framework 使用 tailwindcss，fetcher 使用 Axios，前端数据操作使用 dexie，后端数据操作使用 prisma。
-
-``` bash
-$ yarn create next-app
-$ yarn add tailwindcss autoprefixer postcss prisma -D
-$ yarn add axios dexie dexie-react-hooks @prisma/client
+```sh
+npx create-next-app@16.4.6 watcher --ts --tailwind --app --use-npm
+cd watcher
+npm install --save-exact @prisma/client@7.10.1 @prisma/adapter-better-sqlite3@7.10.1 dotenv axios dexie dexie-react-hooks
+npm install --save-dev --save-exact prisma@7.10.1
 ```
 
-### 初始化 Schema
+## 缓存表结构
 
-``` bash
-$ yarn prisma init --datasource-provider sqlite
-$ vim prisma/schema.prisma
+在项目的 `.env` 中设置 `DATABASE_URL="file:./dev.db"`。每组查询 ID 和规范化后的参数
+对应一条缓存记录。配置与表结构如下。
+
+```ts
+// prisma.config.ts
+import "dotenv/config";
+import { defineConfig, env } from "prisma/config";
+
+export default defineConfig({
+  schema: "prisma/schema.prisma",
+  datasource: { url: env("DATABASE_URL") },
+});
+```
+
+```prisma
+// prisma/schema.prisma
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
 }
 
 model DuneQuery {
-  id           String   @unique
-  execution_id String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id          String   @id
+  executionId String   @map("execution_id")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
-
-$ yarn prisma migrate dev --name init
-$ yarn prisma generate
 ```
 
-### 封装API调用
-
-增加 lib/dune.ts, 封装 Dune API 执行的三个步骤：
-``` javascript
-export const executeQuery = async (id: string, parameters: any) => {
-  // 用 hash 生成当前执行的 query key, 检查并获取 sqlite 中是否有对应 execution_id。记得做好缓存过期处理
-  // ...
-};
-export const executeStatus = async (id: string) => {
-  // ...
-};
-export const executeResults = async (id: string) => {
-  // ...
-};
+```sh
+npx prisma migrate dev --name init
+npx prisma generate
+npm run dev
 ```
 
-### 前端数据展示
+在服务端用 SQLite 适配器初始化生成的 Prisma Client。
 
-在 pages 目录增加对应页面中增加个递归 function，判断是否有 data.result 节点返回用于递归调用，useEffect 中触发即可。
+```ts
+// lib/db.ts
+import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaClient } from "../generated/prisma/client";
 
+const url = process.env.DATABASE_URL;
+if (!url) throw new Error("DATABASE_URL is required");
 
-### 代码部署
-
-与 Next.js 项目部署方式一致，这儿已将 DB 初始化放到 package.json
-
-``` json
-  "scripts": {
-    "dev": "prisma generate && prisma migrate dev && next dev",
-    "build": "prisma generate && prisma migrate deploy && next build",
-    "start": "next start"
-  }
+export const prisma = new PrismaClient({ adapter: new PrismaBetterSqlite3({ url }) });
 ```
+
+## 查询和展示
+
+在 `app/api/` 下添加服务端路由，使用服务端的 `DUNE_API_KEY` 调用 Dune。
+缓存未命中时，用已保存的查询 ID 和参数发起执行，保存返回的执行 ID 并轮询状态。
+执行成功后获取结果，遇到失败、取消或超时则结束轮询。前端请求这个路由并渲染返回的数据行。
+
+部署时，对持久化数据库执行 `npx prisma migrate deploy`，并在运行
+`npm run build` 前执行 `npx prisma generate`。SQLite 适配器依赖 Node.js 运行时和持久化存储。
 
 ### 为API编写SQL查询
 
@@ -161,9 +158,9 @@ https://dune.com/queries/2056547
 
 
 ## Dune API 文档
-- 中文文档： https://dune.com/docs/zh/api/ 
-- 最新版本： https://dune.com/docs/api/
 
+- [Dune API 参考](https://docs.dune.com/api-reference/overview/introduction)
+- [Prisma SQLite 适配器](https://www.prisma.io/docs/orm/v7/core-concepts/supported-databases/sqlite)
 
 ## 项目代码仓库
 

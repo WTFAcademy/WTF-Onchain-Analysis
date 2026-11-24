@@ -28,7 +28,7 @@ This is the simplest way to access the result set of a saved query through the A
 
 The execution result of a Query is cached by default. If you do not actively execute the Query again, the API endpoint obtained above will provide the cached result of the last execution. Typically, our applications need to actively execute queries to obtain the latest data that meets the conditions, rather than repeatedly obtaining cached result sets. This is especially true for monitoring-type applications. Therefore, we also need to access the "Execute" endpoint to execute the query and the "Status" endpoint to check the status of query execution. After receiving the information that the query has been executed, we can access the "Results" endpoint to obtain the data.
 
-A complete API call process includes executing the query, checking the query execution status, and obtaining the query results. Detailed explanations about Dune API can be found in the API documentation: [Dune API](https://dune.com/docs/api/api-reference/#latest-results-endpoint).
+A complete API call process includes executing the query, checking the query execution status, and obtaining the query results. Detailed explanations about Dune API can be found in the API documentation: [Dune API](https://docs.dune.com/api-reference/overview/introductionapi-reference/#latest-results-endpoint).
 
 ## Project Requirements
 
@@ -50,86 +50,85 @@ The application includes three main functionalities:
 
     Allows the user to input a pool address (prompting the user to copy it from the pool list), and set a threshold for large swaps (e.g.1000USD). The application then calls the API every 5 minutes and generates an on-site alert if there are swap records that meet the specified condition. The user can set the pool address to monitor and the minimum swap amount in USD (currently providing three choices: 1000, 10000, and 100000). If the API returns data, it will be added to the on-site alert. A red badge in the navigation bar will indicate the number of unread alerts, and clicking it will display the list. After clicking on a single alert, it will be marked as read.
 
-## Development Environment Setup
+## Development environment
 
-``` bash
-Copy code
-yarn dev
+Use Node.js 22.12 or newer. The commands below scaffold a Next.js 16 project with
+the App Router and Tailwind, then install the Prisma 7 SQLite adapter and the
+libraries used in the watcher.
+
+```sh
+npx create-next-app@16.4.6 watcher --ts --tailwind --app --use-npm
+cd watcher
+npm install --save-exact @prisma/client@7.10.1 @prisma/adapter-better-sqlite3@7.10.1 dotenv axios dexie dexie-react-hooks
+npm install --save-dev --save-exact prisma@7.10.1
 ```
 
-For other commands, refer to the `readme.md` file in the project's source code.
+## Cache schema
 
-## Development Overview
+Set `DATABASE_URL="file:./dev.db"` in the project's `.env`. Define the config
+and schema as follows to use one cache row per normalized query and parameter set.
 
-### Project Creation
+```ts
+// prisma.config.ts
+import "dotenv/config";
+import { defineConfig, env } from "prisma/config";
 
-The project is based on Next.js, using tailwindcss as the CSS framework, Axios as the fetcher, dexie for front-end data operations, and prisma for back-end data operations.
-
+export default defineConfig({
+  schema: "prisma/schema.prisma",
+  datasource: { url: env("DATABASE_URL") },
+});
 ```
-$ yarn create next-app
-$ yarn add tailwindcss autoprefixer postcss prisma -D
-$ yarn add axios dexie dexie-react-hooks @prisma/client
-```
 
-### Initialize Schema
-
-``` bash
-$ yarn prisma init --datasource-provider sqlite
-$ vim prisma/schema.prisma
+```prisma
+// prisma/schema.prisma
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
 }
 
 model DuneQuery {
-  id           String   @unique
-  execution_id String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-}
-
-$ yarn prisma migrate dev --name init
-$ yarn prisma generate
-```
-
-### Encapsulate API Calls
-
-Add `lib/dune.ts` to encapsulate the three steps of executing the Dune API:
-
-``` javascript
-export const executeQuery = async (id: string, parameters: any) => {
-  // Generate a hash for the current execution query key, check and get the corresponding execution_id from sqlite. Remember to handle cache expiration.
-  // ...
-};
-
-export const executeStatus = async (id: string) => {
-  // ...
-};
-
-export const executeResults = async (id: string) => {
-  // ...
-};
-```
-
-### Front-end Data Display
-
-In the `pages` directory, add a recursive function to check if `data.result` node exists to use for recursive calls. Trigger it in the `useEffect`.
-
-### Code Deployment
-
-The deployment process is similar to a Next.js project. The initialization of the database is already placed in `package.json`:
-
-``` json
-"scripts": {
-  "dev": "prisma generate && prisma migrate dev && next dev",
-  "build": "prisma generate && prisma migrate deploy && next build",
-  "start": "next start"
+  id          String   @id
+  executionId String   @map("execution_id")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 ```
+
+```sh
+npx prisma migrate dev --name init
+npx prisma generate
+npm run dev
+```
+
+Initialize the generated Prisma Client on the server using the SQLite adapter.
+
+```ts
+// lib/db.ts
+import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaClient } from "../generated/prisma/client";
+
+const url = process.env.DATABASE_URL;
+if (!url) throw new Error("DATABASE_URL is required");
+
+export const prisma = new PrismaClient({ adapter: new PrismaBetterSqlite3({ url }) });
+```
+
+## Query execution and display
+
+Use a server route handler under `app/api/` to call Dune with the server-side
+`DUNE_API_KEY`. On a cache miss, use the saved query ID and its parameters to
+start an execution, store the returned execution ID, and poll its status.
+Fetch results when the execution completes, and stop polling on failure,
+cancellation, or timeout. The frontend requests the server route and displays
+the returned rows.
+
+When deploying, run `npx prisma migrate deploy` against the persistent
+database and `npx prisma generate` before `npm run build`. The SQLite adapter
+needs a Node.js runtime and persistent storage.
 
 ### Writing SQL Queries for API
 
@@ -146,8 +145,8 @@ API calls and their corresponding query information:
 
 ## Dune API Documentation
 
-- Chinese Documentation: https://dune.com/docs/zh/api/
-- Latest Version: https://dune.com/docs/api/
+- [Dune API reference](https://docs.dune.com/api-reference/overview/introduction)
+- [Prisma SQLite adapter](https://www.prisma.io/docs/orm/v7/core-concepts/supported-databases/sqlite)
 
 ## Project Code Repository
 
