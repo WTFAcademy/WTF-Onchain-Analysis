@@ -153,7 +153,7 @@ order by block_date
 
 The display after visualising the query results and adding them to the data dashboard is shown below:
 
-[image_11.png](img/image_11.png)
+![Lens dashboard](img/ch08_image_11.png)
 
 Reference link for the above query on Dune:
 - [https://dune.com/queries/1555124](https://dune.com/queries/1555124)
